@@ -1,4 +1,5 @@
 import { normalizeHTTPMethodName } from './Utils';
+import Router from './Router';
 
 /**
  * Mock server for responding to XMLHttpRequest mocks from the class MockXhr. Provides simple route
@@ -15,15 +16,41 @@ export default class MockXhrServer {
     this.MockXhr = xhrMock;
     this._requests = [];
     this._routes = {};
-    Object.keys(routes).forEach((method) => {
-      const [matcher, handler] = routes[method];
-      this.addHandler(method, matcher, handler);
-    });
+
+    this.populateRoutes(routes);
+
     xhrMock.onSend = (xhr) => { this._handleRequest(xhr); };
 
     // Setup a mock request factory for users
     this.xhrMock = xhrMock; // For backwards compatibility with < 4.1.0
     this.xhrFactory = () => new this.MockXhr();
+  }
+
+  /**
+   *
+   * @param {object | Router} routes are a object like
+   *
+   * ```js
+   * {
+   *  get: ['/my/url', {
+   *    body: '{ "message": "Success!" }',
+   *  }],
+   * }
+   * ```
+   *
+   * or a instance of router using `Mockccino.router(baseUrl)`
+   */
+  populateRoutes(routes) {
+    if (routes instanceof Router) {
+      routes.routes.forEach((route) => {
+        this.addHandler(route.method, route.resolve(routes.baseUrl), route.request);
+      });
+    } else {
+      Object.keys(routes).forEach((method) => {
+        const [matcher, handler] = routes[method];
+        this.addHandler(method, matcher, handler);
+      });
+    }
   }
 
   /**

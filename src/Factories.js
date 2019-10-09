@@ -1,5 +1,6 @@
 import MockXhr from './MockXhr';
 import MockXhrServer from './MockXhrServer';
+import Router from './Router';
 
 /**
  * Create a new "local" MockXhr subclass. This makes it easier to have self-contained unit tests
@@ -45,4 +46,13 @@ export function newMockXhr() {
  */
 export function newServer(routes) {
   return new MockXhrServer(newMockXhr(), routes);
+}
+
+/**
+ * Create a new Router to use on MockXhrServer.
+ *
+ * @returns {Router} new router
+ */
+export function newRouter(baseUrl) {
+  return new Router(baseUrl);
 }

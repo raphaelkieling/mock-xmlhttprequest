@@ -2,6 +2,7 @@ import { assert } from 'chai';
 
 import HeadersContainer from '../src/HeadersContainer';
 import MockXhrServer from '../src/MockXhrServer';
+import Router from '../src/Router';
 
 describe('MockXhrServer', () => {
   // Bare minimum xhrMock to give to MockXhrServer
@@ -49,8 +50,32 @@ describe('MockXhrServer', () => {
     });
   });
 
+  describe('Router', () => {
+    it('should add routes', () => {
+      const tester = new ServerTester();
+
+      const router = new Router();
+
+      router.get('/get', { status: 200 });
+      router.custom('my-method', '/my-method', { status: 201 });
+      router.post('/post', { status: 404 });
+
+      // eslint-disable-next-line no-unused-vars
+      const server = new MockXhrServer(tester, router);
+
+      tester.doRequest('get', '/get');
+      tester.doRequest('my-method', '/my-method');
+      tester.doRequest('post', '/post');
+
+      assert.equal(tester.responses.length, 3, 'handlers called');
+      assert.equal(tester.responses[0].status, 200);
+      assert.equal(tester.responses[1].status, 201);
+      assert.equal(tester.responses[2].status, 404);
+    });
+  });
+
   describe('MockXhr access', () => {
-    class MockXhr {}
+    class MockXhr { }
 
     it('should expose the MockXhr class', () => {
       const server = new MockXhrServer(MockXhr);
